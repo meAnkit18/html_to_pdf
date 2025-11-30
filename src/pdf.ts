@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 
 export async function renderPdfFromHtml(html: string) {
   const browser = await puppeteer.launch({
-    headless: "new",
+    headless: true, // ← FIXED
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
     args: [
       "--no-sandbox",
