@@ -1,39 +1,26 @@
-import puppeteer from 'puppeteer';
+import puppeteer from "puppeteer";
 
+export async function renderPdfFromHtml(html: string) {
+  const browser = await puppeteer.launch({
+    headless: "new",
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: [
+      "--no-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--disable-setuid-sandbox",
+      "--disable-software-rasterizer"
+    ]
+  });
 
-export async function renderPdfFromHtml(html: string): Promise<Buffer> {
-// Puppeteer launch arguments tuned for headless servers like Render
-const launchOptions = {
-headless: true,
-args: [
-'--no-sandbox',
-'--disable-setuid-sandbox',
-'--disable-dev-shm-usage',
-'--disable-accelerated-2d-canvas',
-'--no-zygote',
-'--single-process',
-'--disable-gpu'
-]
-};
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "networkidle0" });
 
+  const pdf = await page.pdf({
+    format: "A4",
+    printBackground: true
+  });
 
-const browser = await puppeteer.launch(launchOptions);
-try {
-const page = await browser.newPage();
-// Optional: set viewport, userAgent etc.
-await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
-
-
-const pdfBuffer = await page.pdf({
-format: 'A4',
-printBackground: true,
-margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' }
-}) as Buffer;
-
-
-await page.close();
-return pdfBuffer;
-} finally {
-await browser.close();
-}
+  await browser.close();
+  return pdf;
 }
